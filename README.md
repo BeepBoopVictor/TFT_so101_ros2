@@ -264,7 +264,7 @@ This workspace connects the Lerobot leader/follower stack with ROS2 so you can t
 Launch the leader and follower bridges, cameras and RViz in one terminal:
 
 ```bash
-ros2 launch so101_bringup so101_teleoperate.launch.py mode:=real display:=true
+ros2 launch so101_bringup so101_teleoperate.launch.py mode:=real expert:=human display:=true
 ```
 
 The launch file brings up the leader bridge immediately >> waits for the follower to connect >> optionally opens RViz (`display:=true`) >> starts the teleoperation componenet once both arms publish joint states. 
@@ -287,7 +287,7 @@ You should now be able to move the leader arm and see the follower mimicking its
 3. Launch in a second terminal the teleoperation pipeline connected to the Isaac transport topics:
 
   ```bash
-  ros2 launch so101_bringup so101_teleoperate.launch.py mode:=isaac display:=true
+  ros2 launch so101_bringup so101_teleoperate.launch.py mode:=isaac expert:=human display:=true
   ```
 
 4. Start simulation.
@@ -406,9 +406,69 @@ Check out the official tutorials on [imitation learning with lerobot](https://hu
 
 ### Deploying a VLA
 
-TBD...
+Once you have a trained VLA checkpoint, you can deploy it in the teleoperation pipeline to control the follower arm autonomously.
 
----
+Supported policies:
+- smolvla
+- pi05 [in progress]
+
+#### Configuration
+
+1. Configure the policy parameters in `so101_ros2_bridge/config/so101_policy_params.yaml` to point to your trained checkpoint and specify the task description. Adjust other parameters as needed.
+
+2. Update the IO configuration in `so101_ros2_bridge/config/policies/io.yaml` to match your setup, including topics for observations and actions.
+
+3. Update specific policy parameters in `so101_ros2_bridge/config/policies/<policy_name>.yaml` if necessary.
+
+#### Policy Lifecycle Node
+
+The policy lifecycle node is responsible for managing the lifecycle of the policy. It handles transitions between different states (e.g., CONFIGURE, ACTIVATE, DEACTIVATE).
+
+Transitions:
+- **CONFIGURE**: Loads the policy model and prepares it for inference.
+- **ACTIVATE**: Starts the inference loop, allowing the policy to control the follower arm.
+- **DEACTIVATE**: Stops the inference loop, pausing policy control.
+- **CLEANUP**: Resets the node to an unconfigured state.
+- **SHUTDOWN**: Cleans up resources and prepares for shutdown.
+
+For example, to configure and activate the policy node, use the following commands:
+
+```bash
+ros2 lifecycle set /policy_runner configure
+ros2 lifecycle set /policy_runner activate
+```
+
+#### Run a real world inference session
+
+Once configured, launch the teleoperation pipeline with policy expert:
+
+```bash
+ros2 launch so101_bringup so101_teleoperate.launch.py mode:=real expert:=policy display:=true
+```
+
+The launch file will start follower bridge, cameras, policy lifecycle node and RViz (if `display:=true`). The policy node will wait until both leader and follower are publishing joint states before activating the inference loop.
+
+In another terminal, configure and activate the policy node:
+
+```bash
+ros2 lifecycle set /policy_runner configure
+ros2 lifecycle set /policy_runner activate
+```
+
+**[NOTE]:** Configure transition can take some time depending on the model size and hardware.
+
+Then the follower arm should start moving according to the policy's predictions based on the observations and the specified task.
+#### Run an Isaac inference session
+
+Launch the teleoperation pipeline with policy expert connected to Isaac transport topics:
+
+```bash
+ros2 launch so101_bringup so101_teleoperate.launch.py mode:=isaac expert:=policy display:=true
+```
+
+Then in another terminal, configure and activate the policy node as already shown above.
+
+Then the simulated follower arm in IsaacSim should start moving according to the policy's predictions based on the observations and the specified task.
 
 ## License
 
@@ -422,9 +482,6 @@ full license text.
 Contributions are welcome. Check out the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute.
 
 ---
-
-## Roadmap for v0.1.1
-- [ ] Write a VLA inference node.
 
 ## Roadmap for v0.2.0
 - [ ] Moveit integration

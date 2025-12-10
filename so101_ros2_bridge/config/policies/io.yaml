@@ -11,7 +11,7 @@ observations:
   observation.state:
     topic: "/follower/joint_states"
     msg_type: "sensor_msgs/msg/JointState"
-    # Optional: specify joint names to extract from JointState message
+    # Optional: specify joint names to ext  ract from JointState message
     # names:
     # If not provided, Defaults will be used from the policy config
       # - "shoulder_pan"
