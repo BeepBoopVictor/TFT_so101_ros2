@@ -4,7 +4,7 @@ sdr:
     bag_name_prefix: "robot_data"
 
     # The parent directory where all recording session folders will be saved.
-    copy_destination: "/home/nimrod/ros2_ws/src/so101_ros2/bag"
+    copy_destination: "<your abs path to the desired dir>"
 
     # Maximum size of each individual .db3 file in bytes before splitting.
     max_file_size: 1073741824  # 1024 MiB * 1024 * 1024
