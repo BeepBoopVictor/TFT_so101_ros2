@@ -46,7 +46,7 @@ Use the simulator workflow to stream demonstrations into Isaac Sim.
 
 4. Start simulation.
 
-This reuses the teleoperation pipeline while switching the interfaces to the Isaac transport topics so you can stream demonstrations from the leader arm directly into the simulator using Isaac ROS2 Bridge.
+This reuses the teleoperation pipeline while switching the interfaces to the Isaac transport topics so you can stream demonstrations from the leader arm directly into the simulator using Isaac ROS 2 Bridge.
 
 You should now be able to move the leader arm and see the follower in IsaacSim mimicking its motions in real time and RViz which visualises the follower cameras and follower state comparing to the leader state.
 
@@ -60,7 +60,8 @@ You should now be able to move the leader arm and see the follower in IsaacSim m
 
 
 Record demonstrations with ``system_data_recorder``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------------
+
 The workspace ships with launch files for the
 ``system_data_recorder`` package to capture rosbag2 datasets.
 
@@ -177,7 +178,150 @@ Check out the official tutorials on `imitation learning with lerobot <https://hu
 Deployment
 ------------------------
 
-.. admonition:: TBD ...
+Once trained, deploy the VLA policy in place of the leader commands. 
 
-   Describe how to deploy the trained policy back to the SO101 hardware.
+.. attention::
+
+   Currently only SmolVla is supported. Other policies may be added in future releases.
+
+Configuration
+~~~~~~~~~~~~~
+
+1. Update the policy parameters in ``so101_ros2_bridge/config/so101_policy_params.yaml`` to
+   point to your trained model checkpoint and adjust any inference settings.
+
+   For example:
+
+   .. code-block:: yaml
+
+      /**:
+      ros__parameters:
+         # Sync / timing
+         inference_rate: 1.0          # Hz, how often to run policy
+         inference_delay: 0.5        # sec, delay of inference
+         publish_rate: 25.0           # Hz, how often to publish JointState commands
+         sync.queue_size: 20               # message_filters queue_size
+         sync.slop: 0.1                  # ApproximateTimeSynchronizer slop [sec]
+
+         # General policy parameters
+         policy_name: "smolvla"
+         device: cuda:0
+         checkpoint_path: "<your abs path to the ckpt dir>/pretrained_model"  # Default checkpoint path
+         task: "<your task description here>" # e.g "Pick the cube and place it in the bowl."
+
+2. Update the input/output parameters in ``so101_ros2_bridge/config/policies/io.yaml`` to match your setup.
+
+   For example:
+
+   .. code-block:: yaml
+
+      observations:
+
+         observation.images.camera1:
+            topic: "/follower/cam_front/image_raw"
+            msg_type: "sensor_msgs/msg/Image"
+
+         observation.images.camera2:
+            topic: "/static_camera/cam_side/color/image_raw"
+            msg_type: "sensor_msgs/msg/Image"
+
+         observation.state:
+            topic: "/follower/joint_states"
+            msg_type: "sensor_msgs/msg/JointState"
+
+      action:
+         topic: "/leader/joint_states"
+         msg_type: "sensor_msgs/msg/JointState"
+
+   .. attention::
+
+      Ensure that the observations and the action keys (e.g. "observation.images.camera1", "action") are corresponding to the dataset features structure.
+
+3. Update the specific policy parameters in ``so101_ros2_bridge/config/policies/<policy_name>.yaml`` as needed.
+
+   For example, for smolvla:
+
+   .. code-block:: yaml
+
+      # Specific smolvla policy configuration
+      lpf_filtering:
+      enable: True # Enable or disable low-pass filtering
+      alpha: 0.1 # Smoothing factor for low-pass filter [0.0 - 1.0], lower values mean more smoothing
+
+
+Key Parameters
+^^^^^^^^^^^^^^
+
+``so101_policy_params.yaml`` exposes several key parameters for tuning the policy behavior:
+
+- **inference_rate**: The rate at which the policy is invoked (Hz). Depend on hardware capabilities and desired responsiveness.
+- **inference_delay**: The time interval (sec) between the model receiving an input and producing the corresponding output. This value should be empirically measured and configured to match the specific model's performance. It is crucial for ensuring smooth and timely responses. Affects the starting action index to slice the predicted chunk.
+- **publish_rate**: The rate at which the policy publishes actions (Hz). This should be compatible with the follower controller update rate and the inference rate. The higher value of publish_rate the faster action buffer/chunk will be processed. However, very high publish_rate with low inference_rate may lead to repeated actions being sent, and vibration of the arm.
+- **sync.queue_size**: The size of the message filter queue for synchronizing topics.
+- **sync.slop**: The slop time for the approximate time synchronizer (sec). This defines the maximum time difference allowed between messages to be considered synchronized. It should be set based on the expected message arrival times and system latency.
+
+Policy Lifecycle Node
+~~~~~~~~~~~~~~~~~~~~~
+
+The policy lifecycle node is responsible for managing the lifecycle of the policy. It handles transitions between different states.
+
+=================  ==============================================================
+Transition         Description
+=================  ==============================================================
+CONFIGURE          Loads the policy model and prepares it for inference.
+ACTIVATE           Starts the inference loop, allowing the policy to control the follower arm.
+DEACTIVATE         Stops the inference loop, pausing policy control. Current state is retained.
+CLEANUP            Resets the node to an unconfigured state.
+SHUTDOWN           Cleans up resources and prepares for shutdown.
+=================  ==============================================================
+
+For example, to configure and activate the policy node, use the following commands:
+
+   .. code-block:: bash
+      ros2 lifecycle set /policy_runner configure
+      ros2 lifecycle set /policy_runner activate
+
+
+Real Inference
+~~~~~~~~~~~~~~
+
+Launch the teleoperation pipeline in **real** mode using **policy** expert instead of human.
+
+.. code-block:: bash
+
+   ros2 launch so101_bringup so101_teleoperate.launch.py mode:=real expert:=policy display:=true
+
+The launch file will start follower bridge, cameras, policy lifecycle node and RViz (if `display:=true`). The policy node will subscribe to the synced follower camera topics and joint states and will do nothing until configured and activated.
+
+In another terminal, configure and activate the policy node:
+
+.. code-block:: bash
+   ros2 lifecycle set /policy_runner configure
+   ros2 lifecycle set /policy_runner activate
+
+.. attention::
+   Configure transition can take some time depending on the model size and hardware.
+
+Then the follower arm should start moving according to the policy's predictions based on the observations and the specified task.
+
+Isaac Sim Inference
+~~~~~~~~~~~~~~~~~~~
+
+1. Bringup IsaacSim in one terminal::
+
+      ${ISAACSIM_PATH}/isaac-sim.sh
+
+2. Load your ready-made usd file or use the provided example scene located at ``so101_description/usd/so101_new_calib.usd``.
+
+3. Launch the teleoperation pipeline in **isaac** mode using **policy** expert.
+
+   .. code-block:: bash
+
+      ros2 launch so101_bringup so101_teleoperate.launch.py mode:=isaac expert:=policy display:=true
+
+   The workflow is similar to the real inference case, but the policy node will subscribe to the synced Isaac transport topics instead.
+
+4. Start simulation.
+
+5. In another terminal, configure and activate the policy node, once configured and activated, the follower in IsaacSim should start moving according to the policy's predictions.
 

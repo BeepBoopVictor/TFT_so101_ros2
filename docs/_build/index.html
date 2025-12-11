@@ -79,7 +79,7 @@
 <section id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
 <p>The SO101 ROS 2 workspace connects Lerobot’s leader and follower controllers to
-the ROS 2 ecosystem. It packages the bridge nodes, bring-up launch files,
+the ROS 2 ecosystem. It packages the bridge nodes, policy nodes, bring-up launch files,
 teleoperation utilities, and documentation for building datasets that support
 imitation learning research.</p>
 </section>
@@ -91,6 +91,7 @@ imitation learning research.</p>
 <li><p>Building the ROS 2 workspace and enabling camera pipelines.</p></li>
 <li><p>Configuring the bridge parameters and launching the system end-to-end.</p></li>
 <li><p>Capturing demonstrations and preparing them for imitation learning pipelines.</p></li>
+<li><p>Configuring the policy parameters and launching inference pipelines.</p></li>
 </ul>
 </section>
 <section id="packages">
@@ -102,7 +103,7 @@ imitation learning research.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">so101_description</span></code> – URDF, xacro, meshes, usd files for the robot + <code class="docutils literal notranslate"><span class="pre">robot_state_publisher</span></code> launch file.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">so101_hardware_interface</span></code> – Hardware interface for the SO101 robot.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">so101_ros2</span></code> – Meta package for the SO101 ROS 2 workspace.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">so101_ros2_bridge</span></code> – Bridge nodes connecting Lerobot APIs to ROS 2 topics and services.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">so101_ros2_bridge</span></code> – Bridge nodes connecting Lerobot APIs to ROS 2 topics and services. Policy nodes for connecting VLA models instead of leader commands.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">so101_teleop</span></code> – Teleoperation component and launch file.</p></li>
 </ul>
 </section>
@@ -143,6 +144,7 @@ imitation learning research.</p>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#real-teleoperation">Real teleoperation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#isaac-sim-teleoperation">Isaac Sim teleoperation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#record-demonstrations-with-system-data-recorder">Record demonstrations with <code class="docutils literal notranslate"><span class="pre">system_data_recorder</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#convert-rosbag2-datasets">Convert rosbag2 datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#training">Training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imitation_learning.html#deployment">Deployment</a></li>

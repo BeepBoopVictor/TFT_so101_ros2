@@ -4,7 +4,7 @@ SO101 ROS 2 Workspace
 Summary
 -------
 The SO101 ROS 2 workspace connects Lerobot's leader and follower controllers to
-the ROS 2 ecosystem. It packages the bridge nodes, bring-up launch files,
+the ROS 2 ecosystem. It packages the bridge nodes, policy nodes, bring-up launch files,
 teleoperation utilities, and documentation for building datasets that support
 imitation learning research.
 
@@ -16,7 +16,7 @@ This documentation walks through the full workflow:
 * Building the ROS 2 workspace and enabling camera pipelines.
 * Configuring the bridge parameters and launching the system end-to-end.
 * Capturing demonstrations and preparing them for imitation learning pipelines.
-
+* Configuring the policy parameters and launching inference pipelines.
 
 Packages
 --------
@@ -26,7 +26,7 @@ Packages
 - ``so101_description`` – URDF, xacro, meshes, usd files for the robot + ``robot_state_publisher`` launch file.
 - ``so101_hardware_interface`` – Hardware interface for the SO101 robot.
 - ``so101_ros2`` – Meta package for the SO101 ROS 2 workspace.
-- ``so101_ros2_bridge`` – Bridge nodes connecting Lerobot APIs to ROS 2 topics and services.
+- ``so101_ros2_bridge`` – Bridge nodes connecting Lerobot APIs to ROS 2 topics and services. Policy nodes for connecting VLA models instead of leader commands.
 - ``so101_teleop`` – Teleoperation component and launch file.
 
 Acknowledgments
