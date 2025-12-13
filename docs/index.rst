@@ -42,4 +42,3 @@ This project builds directly on the excellent `Lerobot <https://github.com/huggi
    ros2controlarch
    getting_started
    imitation_learning
-   

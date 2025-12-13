@@ -94,4 +94,3 @@ real hardware and that the camera streams are visible.
 
 .. image:: ../media/images/getting_started2.jpeg
    :alt: RViz camera view of the SO101 follower
-

@@ -40,7 +40,7 @@ the bridge expectations.
             type: joint_state_broadcaster/JointStateBroadcaster
 
     arm_controller:
-    
+
         ros__parameters:
         update_rate: 25
         type: joint_trajectory_controller/JointTrajectoryController
@@ -55,10 +55,10 @@ the bridge expectations.
         state_interfaces:
             - position
             - velocity
-        
-        state_publish_rate: 50.0  
-        action_monitor_rate: 20.0 
-        time_scaling: 1.1  
+
+        state_publish_rate: 50.0
+        action_monitor_rate: 20.0
+        time_scaling: 1.1
 
     gripper_controller:
         ros__parameters:

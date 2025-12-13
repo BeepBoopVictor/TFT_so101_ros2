@@ -19,10 +19,10 @@
     autofocus: false
     focus: -1
 
-# Node name should be fit the this format: <namespace>/<camera_name> from the so101_cameras.yaml 
-/follower/cam_front: 
+# Node name should be fit the this format: <namespace>/<camera_name> from the so101_cameras.yaml
+/follower/cam_front:
   ros__parameters:
     video_device: "/dev/video0"
     frame_id: "cam_front"
     camera_name: "cam_front"
-    camera_info_url: "package://usb_cam/config/camera_info.yaml" 
+    camera_info_url: "package://usb_cam/config/camera_info.yaml"

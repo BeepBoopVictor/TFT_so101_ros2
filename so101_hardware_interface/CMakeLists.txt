@@ -15,37 +15,29 @@ find_package(pluginlib REQUIRED)
 include_directories(include)
 
 # Create the shared library for the hardware interface plugin
-add_library(so101_hardware_bridge SHARED
-  src/so101_hardware_bridge.cpp
-)
+add_library(so101_hardware_bridge SHARED src/so101_hardware_bridge.cpp)
 
 # Link the library against its dependencies
-ament_target_dependencies(so101_hardware_bridge
-  rclcpp
-  hardware_interface
-  pluginlib
-)
+ament_target_dependencies(so101_hardware_bridge rclcpp hardware_interface
+                          pluginlib)
 
 # Install the compiled library to the lib directory
-install(TARGETS so101_hardware_bridge
+install(
+  TARGETS so101_hardware_bridge
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+  RUNTIME DESTINATION bin)
 
 # Install the header files
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
+install(DIRECTORY include/ DESTINATION include)
 
 # Register the plugin with pluginlib
-pluginlib_export_plugin_description_file(hardware_interface so101_hardware_bridge_plugins.xml)
+pluginlib_export_plugin_description_file(hardware_interface
+                                         so101_hardware_bridge_plugins.xml)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # set(ament_cmake_copyright_FOUND TRUE)
-  # set(ament_cmake_cpplint_FOUND TRUE)
+  # set(ament_cmake_copyright_FOUND TRUE) set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

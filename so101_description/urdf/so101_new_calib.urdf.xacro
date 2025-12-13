@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="so101_new_calib">
-    
+
     <!-- Arguments -->
     <xacro:arg name="initial_positions_file" default="$(find so101_description)/config/initial_positions.yaml" />
     <xacro:arg name="display" default="false"/>

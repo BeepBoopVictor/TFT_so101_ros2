@@ -207,7 +207,7 @@ Check out the official tutorials on `imitation learning with lerobot <https://hu
 Deployment
 ------------------------
 
-Once trained, deploy the VLA policy in place of the leader commands. 
+Once trained, deploy the VLA policy in place of the leader commands.
 
 .. attention::
 

@@ -175,7 +175,7 @@ This package supports the following camera types:
    sudo apt install ros-humble-realsense2-*
    ```
 
---- 
+---
 
 ## Getting Started
 
@@ -225,13 +225,13 @@ Then in so101_usb_camera.yaml you can set the parameters for that specific camer
     image_height: 480
     # other shared parameters over all usb_cam nodes...
 
-# 1) node name should be fit the this format: <namespace>/<camera_name> from the so101_cameras.yaml 
-/follower/cam_front: 
+# 1) node name should be fit the this format: <namespace>/<camera_name> from the so101_cameras.yaml
+/follower/cam_front:
   ros__parameters:
     video_device: "/dev/video0"
     frame_id: "cam_front"
     camera_name: "cam_front"
-    camera_info_url: "package://usb_cam/config/camera_info.yaml" 
+    camera_info_url: "package://usb_cam/config/camera_info.yaml"
 
 ```
 ### Launch the robot with cameras
@@ -267,7 +267,7 @@ Launch the leader and follower bridges, cameras and RViz in one terminal:
 ros2 launch so101_bringup so101_teleoperate.launch.py mode:=real expert:=human display:=true
 ```
 
-The launch file brings up the leader bridge immediately >> waits for the follower to connect >> optionally opens RViz (`display:=true`) >> starts the teleoperation componenet once both arms publish joint states. 
+The launch file brings up the leader bridge immediately >> waits for the follower to connect >> optionally opens RViz (`display:=true`) >> starts the teleoperation componenet once both arms publish joint states.
 
 Watch the log output for any connection errors—most issues stem from missing calibration files or incorrect USB port assignments.
 
@@ -388,7 +388,7 @@ tooling. For more options see the
 Use the `so101-rosbag2lerobot` CLI tool to convert your rosbag2 dataset into the
 `lerobot` imitation learning dataset format.
 
-1. Create a config file with the conversion parameters. An example config is shown in the package config directory. 
+1. Create a config file with the conversion parameters. An example config is shown in the package config directory.
 
 2. Run the conversion command:
 

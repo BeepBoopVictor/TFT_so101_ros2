@@ -33,7 +33,7 @@
           <mechanicalReduction>1</mechanicalReduction>
         </actuator>
       </transmission>
-    
+
 
     <transmission name="elbow_flex_trans">
         <type>transmission_interface/SimpleTransmission</type>
@@ -66,6 +66,6 @@
           <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
           <mechanicalReduction>1</mechanicalReduction>
         </actuator>
-      </transmission> 
+      </transmission>
 
 </robot>

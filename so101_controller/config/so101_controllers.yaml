@@ -13,7 +13,7 @@
         type: joint_state_broadcaster/JointStateBroadcaster
 
   arm_controller:
-  
+
     ros__parameters:
       update_rate: 25
       type: joint_trajectory_controller/JointTrajectoryController
@@ -28,18 +28,18 @@
       state_interfaces:
         - position
         - velocity
-      
+
       gains:
         shoulder_pan:  {p: 0.0, i: 0.0, d: 0.0}
         shoulder_lift: {p: 0.0, i: 0.0, d: 0.0}
         elbow_flex:    {p: 0.0, i: 0.0, d: 0.0}
         wrist_flex:    {p: 0.0, i: 0.0, d: 0.0}
         wrist_roll:    {p: 0.0, i: 0.0, d: 0.0}
-      
-      state_publish_rate: 50.0  
-      action_monitor_rate: 20.0 
 
-      time_scaling: 1.1  
+      state_publish_rate: 50.0
+      action_monitor_rate: 20.0
+
+      time_scaling: 1.1
 
   gripper_controller:
     ros__parameters:

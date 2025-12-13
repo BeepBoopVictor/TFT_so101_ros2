@@ -4,9 +4,9 @@
         <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
 
         <ros2_control name="${name}" type="system" rw_rate="100">
-          
+
           <hardware>
-            
+
             <!-- plugin> mock_components/GenericSystem </plugin -->
 
             <xacro:if value="$(eval mode == 'isaac')">
@@ -16,7 +16,7 @@
             </xacro:if>
 
             <xacro:if value="$(eval mode == 'gazebo')">
-            <plugin>ign_ros2_control/IgnitionSystem</plugin> 
+            <plugin>ign_ros2_control/IgnitionSystem</plugin>
             </xacro:if>
 
             <xacro:if value="$(eval mode == 'real')">

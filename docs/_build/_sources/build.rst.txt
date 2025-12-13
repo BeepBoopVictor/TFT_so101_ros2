@@ -49,10 +49,10 @@ Two camera backends are supported out of the box:
 
 * **Intel RealSense cameras**
    * Install the librealsense SDK from the `official repo <https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages>`_.
-   
+
    * The ROS2 RealSense lib is installed automatically through ``rosdep`` in the initial build.
-   
-      Install manually if required:: 
+
+      Install manually if required::
 
          sudo apt install ros-humble-realsense2-*
 

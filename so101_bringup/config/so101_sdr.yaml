@@ -1,4 +1,4 @@
-sdr:  
+sdr:
   ros__parameters:
     # The base name for each bag file. A timestamp will be appended to this.
     bag_name_prefix: "robot_data"
@@ -23,6 +23,6 @@ sdr:
       "sensor_msgs/msg/Image",
       "sensor_msgs/msg/Image"
     ]
-    
+
     # The task description which will be used for language model prompts for the robot's agent.
     task: ""
