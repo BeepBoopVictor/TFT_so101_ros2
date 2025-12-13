@@ -458,6 +458,7 @@ ros2 lifecycle set /policy_runner activate
 **[NOTE]:** Configure transition can take some time depending on the model size and hardware.
 
 Then the follower arm should start moving according to the policy's predictions based on the observations and the specified task.
+
 #### Run an Isaac inference session
 
 Launch the teleoperation pipeline with policy expert connected to Isaac transport topics:
