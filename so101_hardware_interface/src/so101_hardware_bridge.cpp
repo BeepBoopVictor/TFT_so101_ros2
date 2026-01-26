@@ -30,8 +30,9 @@ namespace so101_hardware_interface
 {
 
 hardware_interface::CallbackReturn So101HardwareBridge::on_init(
-  const hardware_interface::HardwareInfo & info)
+  const hardware_interface::HardwareInfo & info) // Volvemos a HardwareInfo
 {
+  // IMPORTANTE: Aquí usamos 'info', que es el argumento que recibe la función
   if (hardware_interface::SystemInterface::on_init(info) !=
     hardware_interface::CallbackReturn::SUCCESS)
   {
@@ -41,13 +42,12 @@ hardware_interface::CallbackReturn So101HardwareBridge::on_init(
   // Create a ROS 2 node to handle topic communication
   node_ = rclcpp::Node::make_shared("so101_hardware_bridge_node");
 
-  // Initialize storage vectors based on URDF info
+  // info_ es una variable interna de SystemInterface que se llena al llamar a on_init(info)
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   joint_names_.resize(info_.joints.size());
 
-  // Store joint names from the URDF
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     joint_names_[i] = info_.joints[i].name;
   }

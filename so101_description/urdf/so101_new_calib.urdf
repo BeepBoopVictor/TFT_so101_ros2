@@ -399,4 +399,12 @@
     <axis xyz="0 0 0"/>
   </joint> -->
 
+  <gazebo>
+    <plugin
+      filename="gz_ros2_control-system"
+      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find so101_gazebo)/config/gazebo_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
 </robot>

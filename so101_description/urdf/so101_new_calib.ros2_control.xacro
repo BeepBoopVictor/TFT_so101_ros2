@@ -16,7 +16,7 @@
             </xacro:if>
 
             <xacro:if value="$(eval mode == 'gazebo')">
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
             </xacro:if>
 
             <xacro:if value="$(eval mode == 'real')">
