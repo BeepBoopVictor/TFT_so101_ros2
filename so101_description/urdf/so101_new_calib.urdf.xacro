@@ -1,6 +1,13 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="so101_new_calib">
 
+    <link name="world"/>
+    <joint name="world_joint" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
     <!-- Arguments -->
     <xacro:arg name="initial_positions_file" default="$(find so101_description)/config/initial_positions.yaml" />
     <xacro:arg name="display" default="false"/>
@@ -17,4 +24,9 @@
         <xacro:so101_new_calib_ros2_control name="RobotSystem" initial_positions_file="$(arg initial_positions_file)"/>
     </xacro:if>
 
+    <gazebo>
+  	<plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+    	    <parameters>$(find so101_gazebo)/config/gazebo_controllers.yaml</parameters>
+  	</plugin>
+    </gazebo>
 </robot>

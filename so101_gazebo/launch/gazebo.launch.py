@@ -8,6 +8,9 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit
+
 def generate_launch_description():
     pkg_description = FindPackageShare('so101_description').find('so101_description')
     pkg_gazebo = FindPackageShare('so101_gazebo').find('so101_gazebo')
@@ -29,17 +32,15 @@ def generate_launch_description():
         'robot_description': ParameterValue(robot_description_content, value_type=str)
     }]
 )
-
-    # Lanzar Gazebo (Mundo vacío)
-    # Lanzar Gazebo Sim (Mundo vacío) - SUSTITUIR EL ANTERIOR
+    # Launch Gazebo Sim in an empty World
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(FindPackageShare('ros_gz_sim').find('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
+            os.path.join(FindPackageShare('ros_gz_sim').find('ros_gz_sim'), 'launch', 'gz_sim.launch.py') # Official launcher for Gazebo
         ]),
         launch_arguments={'gz_args': '-r empty.sdf'}.items()
     )
 
-    # Spawn del robot en el nuevo Gazebo - SUSTITUIR EL ANTERIOR
+    # Spawn the robot in Gazebo
     spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
@@ -47,23 +48,39 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Cargar los controladores
+    # Load controllers
     load_joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster"],
+        arguments=["joint_state_broadcaster", "--controller-manager-timeout", "60"],
     )
 
     load_arm_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arm_controller"],
+        arguments=["arm_controller", "--controller-manager-timeout", "60"],
+    )
+    
+    node_gz_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+	arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        output='screen'
+    )
+    
+    arm_controller_handler = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=load_joint_state_broadcaster,
+            on_exit=[load_arm_controller],
+        )
     )
 
     return LaunchDescription([
         node_robot_state_publisher,
         gazebo,
         spawn_entity,
+        node_gz_bridge,
         load_joint_state_broadcaster,
-        load_arm_controller
+        # load_arm_controller,
+        arm_controller_handler
     ])
