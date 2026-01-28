@@ -14,6 +14,12 @@ from launch.event_handlers import OnProcessExit
 def generate_launch_description():
     pkg_description = FindPackageShare('so101_description').find('so101_description')
     pkg_gazebo = FindPackageShare('so101_gazebo').find('so101_gazebo')
+    
+    resource_path = os.path.join(pkg_description, '..')
+    if 'GZ_SIM_RESOURCE_PATH' in os.environ:
+        os.environ['GZ_SIM_RESOURCE_PATH'] += os.pathsep + resource_path
+    else:
+        os.environ['GZ_SIM_RESOURCE_PATH'] = resource_path
 
     # Ruta al archivo Xacro
     xacro_file = os.path.join(pkg_description, 'urdf', 'so101_new_calib.urdf.xacro')
@@ -32,15 +38,17 @@ def generate_launch_description():
         'robot_description': ParameterValue(robot_description_content, value_type=str)
     }]
 )
-    # Launch Gazebo Sim in an empty World
+
+    # Lanzar Gazebo (Mundo vacío)
+    # Lanzar Gazebo Sim (Mundo vacío) - SUSTITUIR EL ANTERIOR
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(FindPackageShare('ros_gz_sim').find('ros_gz_sim'), 'launch', 'gz_sim.launch.py') # Official launcher for Gazebo
+            os.path.join(FindPackageShare('ros_gz_sim').find('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
         ]),
         launch_arguments={'gz_args': '-r empty.sdf'}.items()
     )
 
-    # Spawn the robot in Gazebo
+    # Spawn del robot en el nuevo Gazebo - SUSTITUIR EL ANTERIOR
     spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
@@ -48,7 +56,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Load controllers
+    # Cargar los controladores
     load_joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",

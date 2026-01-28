@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: so101_description
+    relative_path: urdf/so101_new_calib.urdf.xacro
+  srdf:
+    relative_path: config/so101_new_calib.srdf
+  package_settings:
+    author_name: Victor Gil
+    author_email: gbvictor011@protonmail.com
+    generated_timestamp: 1769520775
