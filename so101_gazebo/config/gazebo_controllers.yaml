@@ -1,36 +1,39 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
-    use_sim_time: true
-    # Tiempo de espera para evitar errores de timeout en Jazzy
-    switch_controller_timeout: 10.0
+    update_rate: 100    # Controller Manager update frequency (Hz)
+    use_sim_time: true  # Use /clock from simulation (Gazebo)
+    switch_controller_timeout: 10.0 # Time (s) allowed for controller switching operations
 
     joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
+      type: joint_state_broadcaster/JointStateBroadcaster # Publishes joint states (/joint_states)
 
     arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: joint_trajectory_controller/JointTrajectoryController # Follows JointTrajectory goals for the arm
 
     gripper_controller:
-      type: position_controllers/GripperActionController
+      type: position_controllers/GripperActionController  # Gripper action controller (position-based)
+
 
 arm_controller:
   ros__parameters:
     use_sim_time: true
-    joints:
+    joints:               # Arm joints controlled by this trajectory controller
       - shoulder_pan
       - shoulder_lift
       - elbow_flex
       - wrist_flex
       - wrist_roll
+
     command_interfaces:
       - position
+
     state_interfaces:
       - position
       - velocity
     state_publish_rate: 100.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: false
+
 
 gripper_controller:
   ros__parameters:

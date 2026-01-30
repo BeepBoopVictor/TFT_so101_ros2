@@ -1,94 +1,148 @@
 import os
-# from hardships_ros2.substitutions import FindPackageShare
-from launch_ros.substitutions import FindPackageShare
-from launch import LaunchDescription
-from launch_ros.parameter_descriptions import ParameterValue
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration
-from launch_ros.actions import Node
 
-from launch.actions import RegisterEventHandler
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command
+from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.substitutions import FindPackageShare
+
+
+def _extend_gz_resource_path(path_to_add: str) -> None:
+    """
+    Append a path to GZ_SIM_RESOURCE_PATH so Gazebo can resolve meshes/materials.
+    """
+    env_key = "GZ_SIM_RESOURCE_PATH"
+    if env_key in os.environ and os.environ[env_key]:
+        os.environ[env_key] += os.pathsep + path_to_add
+    else:
+        os.environ[env_key] = path_to_add
+
 
 def generate_launch_description():
-    pkg_description = FindPackageShare('so101_description').find('so101_description')
-    pkg_gazebo = FindPackageShare('so101_gazebo').find('so101_gazebo')
-    
-    resource_path = os.path.join(pkg_description, '..')
-    if 'GZ_SIM_RESOURCE_PATH' in os.environ:
-        os.environ['GZ_SIM_RESOURCE_PATH'] += os.pathsep + resource_path
-    else:
-        os.environ['GZ_SIM_RESOURCE_PATH'] = resource_path
+    # ============================================================
+    # 1) Locate package resources
+    # ============================================================
+    pkg_description = FindPackageShare("so101_description").find("so101_description")
+    # NOTE: pkg_gazebo is not used in this launch, keep it only if you plan to use it later.
+    # pkg_gazebo = FindPackageShare("so101_gazebo").find("so101_gazebo")
 
-    # Ruta al archivo Xacro
-    xacro_file = os.path.join(pkg_description, 'urdf', 'so101_new_calib.urdf.xacro')
+    # Make Gazebo able to find package resources (meshes, textures, etc.)
+    _extend_gz_resource_path(os.path.join(pkg_description, ".."))
 
-    # Generar el Robot Description con modo gazebo
-    robot_description_content = Command([
-        'xacro ', xacro_file, ' mode:=gazebo'
-    ])
+    # ============================================================
+    # 2) Build robot_description from Xacro
+    # ============================================================
+    xacro_file = os.path.join(pkg_description, "urdf", "so101_new_calib.urdf.xacro")
 
-    # Nodo Robot State Publisher
-    node_robot_state_publisher = Node(
-    package='robot_state_publisher',
-    executable='robot_state_publisher',
-    output='screen',
-    parameters=[{
-        'robot_description': ParameterValue(robot_description_content, value_type=str)
-    }]
-)
+    # Generate URDF at launch-time (enable Gazebo-specific configuration via mode:=gazebo)
+    robot_description = ParameterValue(
+        Command(["xacro ", xacro_file, " mode:=gazebo"]),
+        value_type=str,
+    )
 
-    # Lanzar Gazebo (Mundo vacío)
-    # Lanzar Gazebo Sim (Mundo vacío) - SUSTITUIR EL ANTERIOR
+    # ============================================================
+    # 3) Core nodes: robot_state_publisher
+    # ============================================================
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="screen",
+        parameters=[{"robot_description": robot_description}],
+    )
+
+    # ============================================================
+    # 4) Gazebo: start simulator + spawn the robot
+    # ============================================================
     gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(FindPackageShare('ros_gz_sim').find('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
-        ]),
-        launch_arguments={'gz_args': '-r empty.sdf'}.items()
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    FindPackageShare("ros_gz_sim").find("ros_gz_sim"),
+                    "launch",
+                    "gz_sim.launch.py",
+                )
+            ]
+        ),
+        # Equivalent to: gz sim -r empty.sdf
+        launch_arguments={"gz_args": "-r empty.sdf"}.items(),
     )
 
-    # Spawn del robot en el nuevo Gazebo - SUSTITUIR EL ANTERIOR
-    spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
-        arguments=['-topic', 'robot_description', '-name', 'so101'],
-        output='screen'
+    # Spawn the robot entity in Gazebo from the robot_description source
+    spawn_robot = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-topic", "robot_description",  # Read URDF XML from this source
+            "-name", "so101",               # Name of the spawned model in Gazebo
+        ],
     )
 
-    # Cargar los controladores
+    # ============================================================
+    # 5) Time sync: bridge Gazebo /clock -> ROS 2 /clock
+    # ============================================================
+    gz_clock_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        output="screen",
+        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
+    )
+
+    # ============================================================
+    # 6) ros2_control: spawn controllers (ordered)
+    # ============================================================
+    # First: Joint State Broadcaster so ROS can publish /joint_states
     load_joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager-timeout", "60"],
+        output="screen",
     )
 
+    start_jsb_after_spawn = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_robot,
+            on_exit=[load_joint_state_broadcaster],
+        )
+    )
+
+    # Then: Arm trajectory controller (FollowJointTrajectory)
     load_arm_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["arm_controller", "--controller-manager-timeout", "60"],
+        output="screen",
     )
-    
-    node_gz_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-	arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
-        output='screen'
-    )
-    
-    arm_controller_handler = RegisterEventHandler(
-        event_handler=OnProcessExit(
+
+    # Start arm_controller only after the spawner for joint_state_broadcaster finishes
+    # (spawner exits after successfully loading the controller)
+    start_arm_after_jsb = RegisterEventHandler(
+        OnProcessExit(
             target_action=load_joint_state_broadcaster,
             on_exit=[load_arm_controller],
         )
     )
 
-    return LaunchDescription([
-        node_robot_state_publisher,
-        gazebo,
-        spawn_entity,
-        node_gz_bridge,
-        load_joint_state_broadcaster,
-        # load_arm_controller,
-        arm_controller_handler
-    ])
+    # ============================================================
+    # 7) Launch description (execution order)
+    # ============================================================
+    return LaunchDescription(
+        [
+            # Robot description + TF
+            robot_state_publisher,
+
+            # Simulator + spawn
+            gazebo,
+            spawn_robot,
+
+            # Simulation time
+            gz_clock_bridge,
+
+            # Controllers
+            start_jsb_after_spawn,
+            start_arm_after_jsb,
+        ]
+    )
