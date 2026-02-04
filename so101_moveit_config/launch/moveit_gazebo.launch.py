@@ -84,7 +84,6 @@ def generate_launch_description():
 
     # ============================================================
     # 5) ros2_control controller spawners (optional but typical in sim)
-    #    NOTE: You created them, but you were not launching them.
     # ============================================================
     # joint_state_broadcaster_spawner = Node(
     #     package="controller_manager",

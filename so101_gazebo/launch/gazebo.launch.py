@@ -22,11 +22,13 @@ def _extend_gz_resource_path(path_to_add: str) -> None:
 
 
 def generate_launch_description():
+
     # ============================================================
     # 1) Locate package resources
     # ============================================================
+
     pkg_description = FindPackageShare("so101_description").find("so101_description")
-    # NOTE: pkg_gazebo is not used in this launch, keep it only if you plan to use it later.
+
     # pkg_gazebo = FindPackageShare("so101_gazebo").find("so101_gazebo")
 
     # Make Gazebo able to find package resources (meshes, textures, etc.)
@@ -109,11 +111,19 @@ def generate_launch_description():
         )
     )
 
-    # Then: Arm trajectory controller (FollowJointTrajectory)
+    # Arm trajectory controller (FollowJointTrajectory)
     load_arm_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["arm_controller", "--controller-manager-timeout", "60"],
+        output="screen",
+    )
+    
+    # Gripper controller
+    load_gripper_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_controller", "--controller-manager-timeout", "60"],
         output="screen",
     )
 
@@ -123,6 +133,13 @@ def generate_launch_description():
         OnProcessExit(
             target_action=load_joint_state_broadcaster,
             on_exit=[load_arm_controller],
+        )
+    )
+    
+    start_gripper_after_arm = RegisterEventHandler(
+        OnProcessExit(
+            target_action=load_arm_controller,
+            on_exit=[load_gripper_controller],
         )
     )
 
@@ -144,5 +161,6 @@ def generate_launch_description():
             # Controllers
             start_jsb_after_spawn,
             start_arm_after_jsb,
+            start_gripper_after_arm,
         ]
     )
