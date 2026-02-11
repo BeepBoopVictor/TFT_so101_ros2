@@ -9,6 +9,8 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
+from ament_index_python.packages import get_package_share_directory
+
 
 def _extend_gz_resource_path(path_to_add: str) -> None:
     """
@@ -26,10 +28,7 @@ def generate_launch_description():
     # ============================================================
     # 1) Locate package resources
     # ============================================================
-
     pkg_description = FindPackageShare("so101_description").find("so101_description")
-
-    # pkg_gazebo = FindPackageShare("so101_gazebo").find("so101_gazebo")
 
     # Make Gazebo able to find package resources (meshes, textures, etc.)
     _extend_gz_resource_path(os.path.join(pkg_description, ".."))
@@ -39,11 +38,7 @@ def generate_launch_description():
     # ============================================================
     xacro_file = os.path.join(pkg_description, "urdf", "so101_new_calib.urdf.xacro")
 
-    # Generate URDF at launch-time (enable Gazebo-specific configuration via mode:=gazebo)
-    robot_description = ParameterValue(
-        Command(["xacro ", xacro_file, " mode:=gazebo"]),
-        value_type=str,
-    )
+    robot_description = ParameterValue( Command(["xacro ", xacro_file, " mode:=gazebo"]), value_type=str, )
 
     # ============================================================
     # 3) Core nodes: robot_state_publisher
@@ -58,45 +53,60 @@ def generate_launch_description():
     # ============================================================
     # 4) Gazebo: start simulator + spawn the robot
     # ============================================================
+    pkg_gazebo_share = get_package_share_directory("so101_gazebo")
+    world_path = os.path.join(pkg_gazebo_share, "worlds", "so101_with_camera.sdf")
+
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    FindPackageShare("ros_gz_sim").find("ros_gz_sim"),
-                    "launch",
-                    "gz_sim.launch.py",
-                )
-            ]
+            os.path.join(
+                FindPackageShare("ros_gz_sim").find("ros_gz_sim"),
+                "launch",
+                "gz_sim.launch.py",
+            )
         ),
-        # Equivalent to: gz sim -r empty.sdf
-        launch_arguments={"gz_args": "-r empty.sdf"}.items(),
+        launch_arguments={"gz_args": f"-r {world_path}"}.items(),
+        # launch_arguments={"gz_args": f"-r empty.sdf"}.items(),
     )
 
-    # Spawn the robot entity in Gazebo from the robot_description source
+    # Spawn the robot entity in Gazebo
     spawn_robot = Node(
         package="ros_gz_sim",
         executable="create",
         output="screen",
         arguments=[
-            "-topic", "robot_description",  # Read URDF XML from this source
-            "-name", "so101",               # Name of the spawned model in Gazebo
+            "-topic", "robot_description",
+            "-name", "so101_new_calib",
+        ],
+    )
+
+    # Spawn the camera (CORREGIDO: fuera del bloque de spawn_robot)
+    spawn_camera = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-file", os.path.join(pkg_gazebo_share, "worlds", "external_camera.sdf"),
+            "-name", "camera",
         ],
     )
 
     # ============================================================
-    # 5) Time sync: bridge Gazebo /clock -> ROS 2 /clock
+    # 5) BRIDGE: Gazebo <-> ROS 2
     # ============================================================
-    gz_clock_bridge = Node(
+    gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         output="screen",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
+        arguments=[
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+        ],
     )
 
     # ============================================================
     # 6) ros2_control: spawn controllers (ordered)
     # ============================================================
-    # First: Joint State Broadcaster so ROS can publish /joint_states
     load_joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
@@ -111,15 +121,13 @@ def generate_launch_description():
         )
     )
 
-    # Arm trajectory controller (FollowJointTrajectory)
     load_arm_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["arm_controller", "--controller-manager-timeout", "60"],
         output="screen",
     )
-    
-    # Gripper controller
+
     load_gripper_controller = Node(
         package="controller_manager",
         executable="spawner",
@@ -127,15 +135,13 @@ def generate_launch_description():
         output="screen",
     )
 
-    # Start arm_controller only after the spawner for joint_state_broadcaster finishes
-    # (spawner exits after successfully loading the controller)
     start_arm_after_jsb = RegisterEventHandler(
         OnProcessExit(
             target_action=load_joint_state_broadcaster,
             on_exit=[load_arm_controller],
         )
     )
-    
+
     start_gripper_after_arm = RegisterEventHandler(
         OnProcessExit(
             target_action=load_arm_controller,
@@ -144,21 +150,15 @@ def generate_launch_description():
     )
 
     # ============================================================
-    # 7) Launch description (execution order)
+    # 7) Launch description
     # ============================================================
     return LaunchDescription(
         [
-            # Robot description + TF
             robot_state_publisher,
-
-            # Simulator + spawn
             gazebo,
             spawn_robot,
-
-            # Simulation time
-            gz_clock_bridge,
-
-            # Controllers
+            spawn_camera,
+            gz_bridge,
             start_jsb_after_spawn,
             start_arm_after_jsb,
             start_gripper_after_arm,
