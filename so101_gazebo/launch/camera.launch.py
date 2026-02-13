@@ -9,6 +9,10 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+
+from launch.conditions import IfCondition
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -66,7 +70,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-        	"gz_args": f"-r {world_path}"
+        	"gz_args": f"-r -s {world_path}"
         }.items(),
         # launch_arguments={"gz_args": f"-r empty.sdf"}.items(),
     )
@@ -152,13 +156,35 @@ def generate_launch_description():
         )
     )
     
+    
+    
+    
+    # Argumento para activar/desactivar el visor
+    use_rqt = LaunchConfiguration("use_rqt")
 
+    declare_use_rqt = DeclareLaunchArgument(
+        "use_rqt",
+        default_value="true",
+        description="Launch rqt_image_view to display /camera/image_raw",
+    )
+
+    # Nodo rqt_image_view (solo si use_rqt:=true)
+    rqt_image_view = Node(
+        package="rqt_image_view",
+        executable="rqt_image_view",
+        name="rqt_image_view",
+        output="screen",
+        arguments=["/camera/image_raw"],
+        condition=IfCondition(use_rqt),
+    )    
 
     # ============================================================
     # 7) Launch description
     # ============================================================
     return LaunchDescription(
-        [          
+        [
+            declare_use_rqt,
+            
             robot_state_publisher,
             gazebo,
             spawn_robot,
@@ -167,5 +193,7 @@ def generate_launch_description():
             start_jsb_after_spawn,
             start_arm_after_jsb,
             start_gripper_after_arm,
+            
+            rqt_image_view,
         ]
     )
