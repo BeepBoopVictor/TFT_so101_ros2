@@ -86,7 +86,6 @@ def generate_launch_description():
         ],
     )
 
-    # Spawn the camera (CORREGIDO: fuera del bloque de spawn_robot)
     spawn_camera = Node(
         package="ros_gz_sim",
         executable="create",
@@ -94,6 +93,19 @@ def generate_launch_description():
         arguments=[
             "-file", os.path.join(pkg_gazebo_share, "worlds", "external_camera.sdf"),
             "-name", "camera",
+        ],
+    )
+    
+    spawn_cube = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-file", os.path.join(pkg_gazebo_share, "worlds", "cube.sdf"),
+            "-name", "cube",
+            '-x', '0.25', 
+            '-y', '0.2', 
+            '-z', '0.05', 
         ],
     )
 
@@ -108,6 +120,7 @@ def generate_launch_description():
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
             "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+            "/world/empty/dynamic_pose/info@tf2_msgs/msg/TFMessage[ignition.msgs.Pose_V",
         ],
     )
 
@@ -189,6 +202,7 @@ def generate_launch_description():
             gazebo,
             spawn_robot,
             spawn_camera,
+            spawn_cube,
             gz_bridge,
             start_jsb_after_spawn,
             start_arm_after_jsb,

@@ -2,10 +2,10 @@
 <sdf version='1.7'>
     <model name='camera'>
       <static>true</static>
-      <pose>0.8 0.2 0.25 3.1416 0.3916 -2.9</pose>
+      <pose>1.2 0.3 0.475 3.1416 0.3916 -2.9</pose>
       
       <link name='link'>
-        <pose>0.8 0.2 0.25 3.1416 0.3916 -2.9</pose>
+        <pose>1.2 0.3 0.475 3.1416 0.3916 -2.9</pose>
         <visual name='visual'>
           <geometry>
             <box>
