@@ -14,6 +14,11 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def _extend_gz_resource_path(path_to_add: str) -> None:
+	
+    """
+        Carga la ruta extendida para encontrar las mallas
+    """
+
     env_key = "GZ_SIM_RESOURCE_PATH"
     if env_key in os.environ and os.environ[env_key]:
         os.environ[env_key] += os.pathsep + path_to_add
@@ -23,13 +28,19 @@ def _extend_gz_resource_path(path_to_add: str) -> None:
 
 def generate_launch_description():
 
+    """
+        Inicializa el launcher de la simulación		 
+    """
+
     # 1. Configuración de Recursos y Xacro
     pkg_description = FindPackageShare("so101_description").find("so101_description")
     _extend_gz_resource_path(os.path.join(pkg_description, ".."))
-
+    
+    #	- Carga del archivo Xacro y descripción del robot
     xacro_file = os.path.join(pkg_description, "urdf", "so101_new_calib.urdf.xacro")
     robot_description = ParameterValue(Command(["xacro ", xacro_file, " mode:=gazebo"]), value_type=str)
 
+    #	- Inicialización del nodo publisher de estado
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -41,6 +52,7 @@ def generate_launch_description():
     pkg_gazebo_share = get_package_share_directory("so101_gazebo")
     world_path = os.path.join(pkg_gazebo_share, "worlds", "complete_main.sdf")
 
+    #	- Inicialización Launcher del mundo de gazebo
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -52,7 +64,7 @@ def generate_launch_description():
         launch_arguments={"gz_args": f"-r -s {world_path}"}.items(),
     )
 
-    # 3. Spawn EXCLUSIVO del Robot
+    # 3. Spawn del Robot
     spawn_robot = Node(
         package="ros_gz_sim",
         executable="create",
@@ -68,20 +80,27 @@ def generate_launch_description():
         arguments=[
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/camera_caballera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image", # Cámara de apoyo añadida para mejor visualización del robot por parte del usuario
             "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
             "/world/main1_world/dynamic_pose/info@tf2_msgs/msg/TFMessage[ignition.msgs.Pose_V",
         ],
     )
 
-    # 5. Controladores (Secuenciales)
+    # 5. Controladores
+    
+    #	- Nodo de estado del robot
     load_jsb = Node(
         package="controller_manager", executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager-timeout", "60"], output="screen",
     )
+    
+    #	- Controlador de los joints del brazo
     load_arm = Node(
         package="controller_manager", executable="spawner",
         arguments=["arm_controller", "--controller-manager-timeout", "60"], output="screen",
     )
+    
+    #	- Controlador de la pinza
     load_gripper = Node(
         package="controller_manager", executable="spawner",
         arguments=["gripper_controller", "--controller-manager-timeout", "60"], output="screen",
@@ -92,7 +111,8 @@ def generate_launch_description():
     start_arm_after_jsb = RegisterEventHandler(OnProcessExit(target_action=load_jsb, on_exit=[load_arm]))
     start_gripper_after_arm = RegisterEventHandler(OnProcessExit(target_action=load_arm, on_exit=[load_gripper]))
     
-    # 6. Visor de Cámara (Opcional por consola)
+    # 6. Visor de Cámara
+    #	- Se inicializa una ventana para ver la cámara
     use_rqt = LaunchConfiguration("use_rqt")
     declare_use_rqt = DeclareLaunchArgument("use_rqt", default_value="true", description="Launch rqt_image_view")
 
