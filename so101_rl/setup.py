@@ -24,7 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-        	'test_env = so101_rl.test_env:main'
+            'test_env = so101_rl.test_env:main',
+            'train = so101_rl.train:main',
+            'evaluate = so101_rl.evaluate:main'
         ],
     },
 )
