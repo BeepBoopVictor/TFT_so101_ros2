@@ -21,13 +21,13 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # 1. misma arquitectura de red
-    net_a = Net(state_shape, hidden_sizes=, device=device)
-    actor = ActorProb(net_a, action_shape, max_action=env.action_space.high, device=device, unbounded=True).to(device)
+    net_a = Net(state_shape, hidden_sizes=[128, 128], device=device)
+    actor = ActorProb(net_a, action_shape, max_action=env.action_space.high[0], device=device, unbounded=True).to(device)
     
-    net_c1 = Net(state_shape, action_shape, hidden_sizes=, concat=True, device=device)
+    net_c1 = Net(state_shape, action_shape, hidden_sizes=[128, 128], concat=True, device=device)
     critic1 = Critic(net_c1, device=device).to(device)
     
-    net_c2 = Net(state_shape, action_shape, hidden_sizes=, concat=True, device=device)
+    net_c2 = Net(state_shape, action_shape, hidden_sizes=[128, 128], concat=True, device=device)
     critic2 = Critic(net_c2, device=device).to(device)
 
     policy = SACPolicy(
@@ -57,9 +57,13 @@ def main():
 
     while not done:
         batch = Batch(obs=[obs], info=info)
-        
         act_res = policy(batch)
-        action = act_res.act.detach().cpu().numpy()
+        
+        # aplanar a 1D la dimensión
+        action = act_res.act
+        if hasattr(action, 'detach'):
+            action = action.detach().cpu().numpy()
+        action = action.flatten()
 
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated

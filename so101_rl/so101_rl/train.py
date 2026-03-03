@@ -78,8 +78,8 @@ def main():
     # Prueba básica
     result = offpolicy_trainer(
         policy, train_collector, test_collector,
-        max_epoch=1,             # Solo 1 época
-        step_per_epoch=200,      # Muy pocos pasos por época
+        max_epoch=7,             # Solo 1 época
+        step_per_epoch=500,      # Muy pocos pasos por época
         step_per_collect=10,     # Cada 10 pasos simulados, actualiza la red
         update_per_step=0.1,
         episode_per_test=1,      # Solo evalúa 1 episodio al terminar la época
