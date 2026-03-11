@@ -26,7 +26,9 @@ setup(
         'console_scripts': [
             'test_env = so101_rl.test_env:main',
             'train = so101_rl.train:main',
-            'evaluate = so101_rl.evaluate:main'
+            'evaluate = so101_rl.evaluate:main',
+            'train_vision = so101_rl.train_vision:main',
+            'train_her = so101_rl.train_her_sac:main'
         ],
     },
 )
