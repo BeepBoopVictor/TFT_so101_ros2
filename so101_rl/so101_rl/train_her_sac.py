@@ -39,10 +39,12 @@ from so101_rl.utils.metrics_logger import MetricsLogger
 #     return -(d > 0.05).astype(np.float32)
 
 # Función de recompensa Densa + Sparse
+# IMPORTANTE: este umbral debe mantenerse sincronizado con self.distance_threshold en SO101HEREnv
+DISTANCE_THRESHOLD = 0.10
+
 def compute_reward(achieved_goal, desired_goal, info=None):
     d = np.linalg.norm(achieved_goal - desired_goal, axis=-1)
-    # sparse = -(d > 0.05).astype(np.float32)
-    sparse = -(d > 0.15).astype(np.float32)
+    sparse = -(d > DISTANCE_THRESHOLD).astype(np.float32)
     dense  = -d * 0.1
     return sparse + dense
 
@@ -60,8 +62,6 @@ class HERCritic(torch.nn.Module):
         #   - 15 (estado: 6Dof + 3 posicion pinza + 3 posicion del cubo) + 3 (meta: x,y,z cubo rojo) + 6 (acciones) = 21 entradas
         # Salida:
         #   - 1 valor Q para la acción dada el estado y la meta
-        # NOTA: el hecho de que se repita la posición del cubo ambas veces  es debido al HER,
-        # ya que cumple tanto el rol de estado como de meta.
         self.net = torch.nn.Sequential(
             torch.nn.Linear(15 + action_dim, 256),
             torch.nn.ReLU(inplace=True),
@@ -104,7 +104,6 @@ class HERFeatureNet(torch.nn.Module):
         #   - 12 (estado: 6Dof + 3 posicion pinza + 3 posicion del cubo) + 3 (meta: x,y,z cubo rojo) = 15 entradas
         # Salida:
         #   - 256 características para alimentar al Actor y a los Críticos.
-        # NOTA: se excluyen las 6 entradas de acción porque esta red se usará para el Actor, que no recibe la acción como entrada.
         self.net = torch.nn.Sequential(
             torch.nn.Linear(15, 256),
             torch.nn.ReLU(inplace=True),
@@ -125,7 +124,7 @@ class HERFeatureNet(torch.nn.Module):
         if o.dim() == 1:
             o = o.unsqueeze(0)
             g = g.unsqueeze(0)
-            
+
         x = torch.cat([o, g], dim=1)    # Concatenación de estado y meta para alimentar a la red del actor
         
         return self.net(x), state   # Devolvemos las características extraídas y el estado oculto
@@ -155,7 +154,7 @@ def main():
     net_a = HERFeatureNet(device=device).to(device)
     #   - El Actor recibe los 256 features de HERFeatureNet y devuelve una distribución (mu, sigma)
     actor = ActorProb(net_a, action_shape, max_action=env.action_space.high[0], device=device, unbounded=True).to(device)
-    
+
     # Críticos: reciben el estado, la meta y la acción, y devuelven el valor Q correspondiente.
     #  - Clipped Double Q-Learning: se usan dos críticos para reducir el sesgo positivo en la estimación de Q. 
     #    Ambos críticos tienen la misma arquitectura pero parámetros independientes.
@@ -215,10 +214,11 @@ def main():
 
     def on_epoch_end(epoch, env_step):
         summary = metrics.log_epoch_end()
-        metrics.new_epoch()           
+        metrics.new_epoch()
         print(f"[Época {epoch}] éxito={summary.get('success_rate',0):.1%} | "
                 f"dist_min={summary.get('mean_min_distance',0):.3f}m | "
-                f"reward={summary.get('mean_reward',0):.3f}")
+                f"reward={summary.get('mean_reward',0):.3f} | "
+                f"cubo_caído={summary.get('cube_fell_rate',0):.1%}")
 
     # --- BUCLE DE ENTRENAMIENTO ---
     # Se entrena durante un máximo de 30 épocas, con 2000 pasos por época.
