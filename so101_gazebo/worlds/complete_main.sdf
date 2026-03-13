@@ -44,9 +44,10 @@
       </link>
     </model>
 
+    <!-- Plano de la cinta transportadora -->
     <model name="conveyor_environment">
       <static>true</static>
-      
+
       <link name="conveyor_link">
         <pose>0.35 0 0.005 0 0 0</pose>
         <visual name="conveyor_visual">
@@ -61,6 +62,7 @@
         </collision>
       </link>
 
+      <!-- Puntos de referencia para los cubos -->
       <link name="pointA_link">
         <pose>-0.1 -0.2 0.001 0 0 0</pose>
         <visual name="pointA_visual">
@@ -84,19 +86,57 @@
       </link>
     </model>
 
+    <!-- Cubo rojo -->
     <model name="red_cube">
-      <pose>-0.1 -0.2 0.015 0 0 0</pose>
+      <static>false</static>
+      <pose>-0.1 -0.2 0.02 0 0 0</pose>
       <link name="cube_link">
         <inertial>
-          <mass>0.02</mass>
-          <inertia><ixx>0.000003</ixx><iyy>0.000003</iyy><izz>0.000003</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.00001333</ixx>
+            <iyy>0.00001333</iyy>
+            <izz>0.00001333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
         </inertial>
+
+        <!-- Contact sensor: reporta colisiones al topic /world/main1_world/contact -->
+        <sensor name="cube_contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+          <always_on>true</always_on>
+          <update_rate>100</update_rate>
+        </sensor>
+
         <collision name="collision">
-          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
-          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <!-- Reducimos la restitución para evitar rebotes al contacto -->
+            <bounce>
+              <restitution_coefficient>0.0</restitution_coefficient>
+              <threshold>100000</threshold>
+            </bounce>
+            <contact>
+              <ode>
+                <kp>100000</kp>
+                <kd>1</kd>
+              </ode>
+            </contact>
+          </surface>
         </collision>
+
         <visual name="visual">
-          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
           <material>
             <ambient>0.8 0.0 0.0 1</ambient>
             <diffuse>0.8 0.0 0.0 1</diffuse>
@@ -106,19 +146,55 @@
       </link>
     </model>
 
+    <!-- Cubo azul -->
     <model name="blue_cube">
-      <pose>-0.1 0.2 0.015 0 0 0</pose>
+      <static>false</static>
+      <pose>-0.1 0.2 0.02 0 0 0</pose>
       <link name="cube_link">
         <inertial>
-          <mass>0.02</mass>
-          <inertia><ixx>0.000003</ixx><iyy>0.000003</iyy><izz>0.000003</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.00001333</ixx>
+            <iyy>0.00001333</iyy>
+            <izz>0.00001333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
         </inertial>
+
+        <sensor name="blue_cube_contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+          <always_on>true</always_on>
+          <update_rate>100</update_rate>
+        </sensor>
+
         <collision name="collision">
-          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
-          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.8</mu>
+                <mu2>0.8</mu2>
+              </ode>
+            </friction>
+            <bounce>
+              <restitution_coefficient>0.0</restitution_coefficient>
+              <threshold>100000</threshold>
+            </bounce>
+            <contact>
+              <ode>
+                <kp>100000</kp>
+                <kd>1</kd>
+              </ode>
+            </contact>
+          </surface>
         </collision>
+
         <visual name="visual">
-          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <geometry><box><size>0.04 0.04 0.04</size></box></geometry>
           <material>
             <ambient>0.0 0.0 0.8 1</ambient>
             <diffuse>0.0 0.0 0.8 1</diffuse>
@@ -128,9 +204,10 @@
       </link>
     </model>
 
+    <!-- Cámara externa -->
     <model name="external_camera">
       <static>true</static>
-      <pose>1.2 0 0.8 0 0.5 3.14159</pose> 
+      <pose>1.2 0 0.8 0 0.5 3.14159</pose>
       <link name="camera_link">
         <sensor name="camera" type="camera">
           <camera>
@@ -145,11 +222,11 @@
         </sensor>
       </link>
     </model>
-    
-    
+
+    <!-- Cámara en vista caballera -->
     <model name="camera_caballera">
       <static>true</static>
-      <pose>0.75 0.75 0.75 0 0.615 -2.356</pose> 
+      <pose>0.75 0.75 0.75 0 0.615 -2.356</pose>
       <link name="camera_caballera_link">
         <sensor name="camera_caballera_sensor" type="camera">
           <camera>
@@ -164,7 +241,6 @@
         </sensor>
       </link>
     </model>
-    
 
   </world>
 </sdf>
