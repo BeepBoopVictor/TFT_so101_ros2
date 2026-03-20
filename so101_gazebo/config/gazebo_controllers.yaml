@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100    # Controller Manager update frequency (Hz)
+    update_rate: 1000    # Controller Manager update frequency (Hz)
     use_sim_time: true  # Use /clock from simulation (Gazebo)
     switch_controller_timeout: 10.0 # Time (s) allowed for controller switching operations
 
