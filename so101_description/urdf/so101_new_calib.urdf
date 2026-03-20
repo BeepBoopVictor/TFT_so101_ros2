@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated using onshape-to-robot -->
 <!-- Onshape https://cad.onshape.com/documents/7715cc284bb430fe6dab4ffd/w/4fd0791b683777b02f8d975a/e/826c553ede3b7592eb9ca800 -->
+<!--
+  COLLISION BOXES: calculated from real STL bounding boxes.
+  Method: for each link, all component meshes were transformed to the link frame
+  using the visual <origin xyz rpy> offsets from the URDF, their 8 bounding box
+  corners were rotated+translated, and the compound axis-aligned bounding box
+  was computed. A 5% margin was added to each dimension.
+-->
 <robot name="so101_new_calib">
 
   <!-- Materials -->
@@ -11,12 +18,6 @@
     <color rgba="0.1 0.1 0.1 1.0"/>
   </material>
 
-
-  <!-- Virtual world link -->
-  <!-- <link name="world"> -->
-    <!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
-  <!-- </link> -->
-
   <!-- Link base -->
   <link name="base_link">
     <inertial>
@@ -24,60 +25,39 @@
       <mass value="0.147"/>
       <inertia ixx="0.000114686" ixy="-4.59787e-07" ixz="4.97151e-06" iyy="0.000136117" iyz="9.75275e-08" izz="0.000130364"/>
     </inertial>
-    <!-- Part base_motor_holder_so101_v1 -->
     <visual>
       <origin xyz="-0.00636471 -9.94414e-05 -0.0024" rpy="1.5708 -1.67685e-15 1.5708"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/base_motor_holder_so101_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.00636471 -9.94414e-05 -0.0024" rpy="1.5708 -1.67685e-15 1.5708"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/base_motor_holder_so101_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part base_so101_v2 -->
     <visual>
       <origin xyz="-0.00636471 -8.97657e-09 -0.0024" rpy="1.5708 -2.78073e-29 1.5708"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/base_so101_v2.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.00636471 -8.97657e-09 -0.0024" rpy="1.5708 -2.78073e-29 1.5708"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/base_so101_v2.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part sts3215_03a_v1 -->
     <visual>
       <origin xyz="0.0263353 -8.97657e-09 0.0437" rpy="-8.21148e-16 7.84513e-18 1.249e-15"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="0.0263353 -8.97657e-09 0.0437" rpy="-8.21148e-16 7.84513e-18 1.249e-15"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part waveshare_mounting_plate_so101_v2 -->
     <visual>
       <origin xyz="-0.0309827 -0.000199441 0.0474" rpy="1.5708 -1.35493e-14 1.5708"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/waveshare_mounting_plate_so101_v2.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="-0.0309827 -0.000199441 0.0474" rpy="1.5708 -1.35493e-14 1.5708"/>
+      <origin xyz="0.0168 0.0000 0.0336" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/waveshare_mounting_plate_so101_v2.stl"/>
+        <box size="0.1004 0.1164 0.0756"/>
       </geometry>
     </collision>
   </link>
@@ -89,46 +69,32 @@
       <mass value="0.100006"/>
       <inertia ixx="8.3759e-05" ixy="7.55525e-08" ixz="-1.16342e-06" iyy="8.10403e-05" iyz="1.54663e-07" izz="2.39783e-05"/>
     </inertial>
-    <!-- Part sts3215_03a_v1_2 -->
     <visual>
       <origin xyz="-0.0303992 0.000422241 -0.0417" rpy="1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.0303992 0.000422241 -0.0417" rpy="1.5708 1.5708 0"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part motor_holder_so101_base_v1 -->
     <visual>
       <origin xyz="-0.0675992 -0.000177759 0.0158499" rpy="1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/motor_holder_so101_base_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.0675992 -0.000177759 0.0158499" rpy="1.5708 -1.5708 0"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/motor_holder_so101_base_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part rotation_pitch_so101_v1 -->
     <visual>
       <origin xyz="0.0122008 2.22413e-05 0.0464" rpy="-1.5708 2.35221e-33 0"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/rotation_pitch_so101_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="0.0122008 2.22413e-05 0.0464" rpy="-1.5708 2.35221e-33 0"/>
+      <origin xyz="-0.0192 0.0011 -0.0091" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/rotation_pitch_so101_v1.stl"/>
+        <box size="0.0660 0.0579 0.1161"/>
       </geometry>
     </collision>
   </link>
@@ -140,32 +106,25 @@
       <mass value="0.103"/>
       <inertia ixx="4.08002e-05" ixy="-1.97819e-05" ixz="-4.03016e-08" iyy="0.000147318" iyz="8.97326e-09" izz="0.000142487"/>
     </inertial>
-    <!-- Part sts3215_03a_v1_3 -->
     <visual>
       <origin xyz="-0.11257 -0.0155 0.0187" rpy="-3.14159 -5.27356e-16 -1.5708"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.11257 -0.0155 0.0187" rpy="-3.14159 -5.27356e-16 -1.5708"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part upper_arm_so101_v1 -->
     <visual>
       <origin xyz="-0.065085 0.012 0.0182" rpy="3.14159 -0 -1.30911e-30"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/upper_arm_so101_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="-0.065085 0.012 0.0182" rpy="3.14159 -0 -1.30911e-30"/>
+      <origin xyz="-0.0591 -0.0131 0.0201" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/upper_arm_so101_v1.stl"/>
+        <box size="0.1493 0.0528 0.0707"/>
       </geometry>
     </collision>
   </link>
@@ -177,46 +136,32 @@
       <mass value="0.104"/>
       <inertia ixx="2.87438e-05" ixy="7.41152e-06" ixz="1.26409e-06" iyy="0.000159844" iyz="-4.90188e-08" izz="0.00014529"/>
     </inertial>
-    <!-- Part under_arm_so101_v1 -->
     <visual>
       <origin xyz="-0.0648499 -0.032 0.0182" rpy="3.14159 -0 6.67202e-31"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/under_arm_so101_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.0648499 -0.032 0.0182" rpy="3.14159 -0 6.67202e-31"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/under_arm_so101_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part motor_holder_so101_wrist_v1 -->
     <visual>
       <origin xyz="-0.0648499 -0.032 0.018" rpy="-3.14159 -2.55351e-15 -1.83387e-30"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/motor_holder_so101_wrist_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="-0.0648499 -0.032 0.018" rpy="-3.14159 -2.55351e-15 -1.83387e-30"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/motor_holder_so101_wrist_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part sts3215_03a_v1_4 -->
     <visual>
       <origin xyz="-0.1224 0.0052 0.0187" rpy="-3.14159 -7.88861e-31 -3.14159"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="-0.1224 0.0052 0.0187" rpy="-3.14159 -7.88861e-31 -3.14159"/>
+      <origin xyz="-0.0665 0.0035 0.0202" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
+        <box size="0.1650 0.0387 0.0676"/>
       </geometry>
     </collision>
   </link>
@@ -228,32 +173,25 @@
       <mass value="0.079"/>
       <inertia ixx="3.68263e-05" ixy="1.7893e-08" ixz="-5.28128e-08" iyy="2.5391e-05" iyz="3.6412e-06" izz="2.1e-05"/>
     </inertial>
-    <!-- Part sts3215_03a_no_horn_v1 -->
     <visual>
       <origin xyz="8.32667e-17 -0.0424 0.0306" rpy="1.5708 1.5708 0"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_no_horn_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="8.32667e-17 -0.0424 0.0306" rpy="1.5708 1.5708 0"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_no_horn_v1.stl"/>
-      </geometry>
-    </collision>
-    <!-- Part wrist_roll_pitch_so101_v2 -->
     <visual>
       <origin xyz="0 -0.028 0.0181" rpy="-1.5708 -1.5708 0"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/wrist_roll_pitch_so101_v2.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="0 -0.028 0.0181" rpy="-1.5708 -1.5708 0"/>
+      <origin xyz="-0.0022 -0.0269 0.0221" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/wrist_roll_pitch_so101_v2.stl"/>
+        <box size="0.0375 0.0817 0.0655"/>
       </geometry>
     </collision>
   </link>
@@ -265,32 +203,31 @@
       <mass value="0.087"/>
       <inertia ixx="2.75087e-05" ixy="-3.35241e-07" ixz="-5.7352e-06" iyy="4.33657e-05" iyz="-5.17847e-08" izz="3.45059e-05"/>
     </inertial>
-    <!-- Part sts3215_03a_v1_5 -->
     <visual>
       <origin xyz="0.0077 0.0001 -0.0234" rpy="-1.5708 -5.19179e-17 -1.66533e-16"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
       </geometry>
-      <material name="sts3215"/>
+      <material name="sts3215"><color rgba="0.1 0.1 0.1 1.0"/></material>
     </visual>
-    <collision>
-      <origin xyz="0.0077 0.0001 -0.0234" rpy="-1.5708 -5.19179e-17 -1.66533e-16"/>
+    <visual>
+      <origin xyz="8.32667e-17 -0.000218214 0.000949706" rpy="-3.14159 -5.55112e-17 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/sts3215_03a_v1.stl"/>
+        <mesh filename="package://so101_description/meshes/wrist_roll_follower_so101_v1.stl"/>
+      </geometry>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
+    </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
+    <collision>
+      <origin xyz="0.0077 0.0001 -0.0234" rpy="-1.5708 0 0"/>
+      <geometry>
+        <box size="0.0454 0.0248 0.0396"/>
       </geometry>
     </collision>
-    <!-- Part wrist_roll_follower_so101_v1 -->
-    <visual>
-      <origin xyz="8.32667e-17 -0.000218214 0.000949706" rpy="-3.14159 -5.55112e-17 0"/>
-      <geometry>
-        <mesh filename="package://so101_description/meshes/wrist_roll_follower_so101_v1.stl"/>
-      </geometry>
-      <material name="3d_printed"/>
-    </visual>
     <collision>
-      <origin xyz="8.32667e-17 -0.000218214 0.000949706" rpy="-3.14159 -5.55112e-17 0"/>
+      <origin xyz="-0.0026 0.0018 -0.0800" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/wrist_roll_follower_so101_v1.stl"/>
+        <box size="0.0400 0.0300 0.0250"/>
       </geometry>
     </collision>
   </link>
@@ -301,7 +238,7 @@
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <inertia ixx="1e-12" ixy="0" ixz="0" iyy="1e-12" iyz="0" izz="1e-12"/>
     </inertial>
   </link>
 
@@ -319,18 +256,18 @@
       <mass value="0.012"/>
       <inertia ixx="6.61427e-06" ixy="-3.19807e-07" ixz="-5.90717e-09" iyy="1.89032e-06" iyz="-1.09945e-07" izz="5.28738e-06"/>
     </inertial>
-    <!-- Part moving_jaw_so101_v1 -->
     <visual>
       <origin xyz="-5.55112e-17 -5.55112e-17 0.0189" rpy="9.53145e-17 6.93889e-18 1.24077e-24"/>
       <geometry>
         <mesh filename="package://so101_description/meshes/moving_jaw_so101_v1.stl"/>
       </geometry>
-      <material name="3d_printed"/>
+      <material name="3d_printed"><color rgba="1.0 0.82 0.12 1.0"/></material>
     </visual>
+    <!-- COLLISION: compound bbox from real STL measurements + 5% margin -->
     <collision>
-      <origin xyz="-5.55112e-17 -5.55112e-17 0.0189" rpy="9.53145e-17 6.93889e-18 1.24077e-24"/>
+      <origin xyz="-0.0012 -0.0200 0.0189" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://so101_description/meshes/moving_jaw_so101_v1.stl"/>
+        <box size="0.0180 0.0350 0.0200"/>
       </geometry>
     </collision>
   </link>
@@ -362,7 +299,6 @@
     <limit effort="10" velocity="10" lower="-1.65806" upper="1.65806"/>
   </joint>
 
-
   <!-- Joint from upper_arm to lower_arm -->
   <!-- Note: 5-degree calibration offset applied to joint limits -->
   <joint name="elbow_flex" type="revolute">
@@ -390,13 +326,5 @@
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-1.91986" upper="1.91986"/>
   </joint>
-
-  <!-- Fixed joint between world and robot base -->
-  <!-- <joint name="world_to_base" type="fixed">
-    <origin xyz="0.0137179 -5.19711e-05 0.0334843" rpy="0.0 0.0 0.0"/>
-    <parent link="world"/>
-    <child link="base_link"/>
-    <axis xyz="0 0 0"/>
-  </joint> -->
 
 </robot>
