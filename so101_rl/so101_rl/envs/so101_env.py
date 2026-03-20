@@ -16,7 +16,6 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.action import GripperCommand
 from sensor_msgs.msg import JointState
 
-# Importamos nuestro nuevo tracker
 from so101_rl.utils.pose_tracker import PoseTracker
 
 class SO101Env(gym.Env):
@@ -29,12 +28,11 @@ class SO101Env(gym.Env):
         node_name = f'tianshou_so101_env_{uuid.uuid4().hex[:6]}'
         self.node = rclpy.create_node(node_name)
         
-        # --- 1. CONFIGURACIÓN FASE 1 (Propiocepción) ---
         # Acción: 6 joints continuos [-1, 1]
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
         
-        # Observación: 6 Joints + 3 Coordenadas (X,Y,Z) del cubo = 9 valores
-        self.observation_space = spaces.Box(low=-10.0, high=10.0, shape=(9,), dtype=np.float32)
+        # Observación: 6 Joints + 3 Coordenadas (X,Y,Z) del cubo = 12 valores
+        self.observation_space = spaces.Box(low=-10.0, high=10.0, shape=(12,), dtype=np.float32)
 
         # --- 2. ROS 2 SETUP ---
         self.arm_joint_names = ['shoulder_pan', 'shoulder_lift', 'elbow_flex', 'wrist_flex', 'wrist_roll']
@@ -44,7 +42,6 @@ class SO101Env(gym.Env):
         self.joint_sub = self.node.create_subscription(JointState, '/joint_states', self._joint_callback, 10)
         self.latest_joints = np.zeros(6, dtype=np.float32)
 
-        # Inicializamos el tracker de poses para las recompensas y observaciones
         self.tracker = PoseTracker(self.node, target_frame='red_cube', ee_frame='gripper_link') # Ajusta 'gripper_link' si es necesario
 
         self.executor = rclpy.executors.MultiThreadedExecutor()
@@ -84,7 +81,11 @@ class SO101Env(gym.Env):
         time.sleep(0.1)
 
         # 2. Generar Observación (Joints + Posición del Cubo)
-        obs = np.concatenate([self.latest_joints, self.tracker.target_pos]).astype(np.float32)
+        obs = np.concatenate([
+            self.latest_joints[:6],   # 6 valores
+            self.tracker.ee_pos,      # 3 valores (Posición de la mano)
+            cube_pos                  # 3 valores (Posición del objetivo)
+        ]).astype(np.float32)
 
         # 3. Calcular Recompensa (Reward Shaping) y Finalización
         dist = self.tracker.get_distance()
@@ -124,7 +125,7 @@ class SO101Env(gym.Env):
         self.arm_pub.publish(traj_msg)
 
         # 2. Reset Cubo (Teletransporte Aleatorio)
-        radio = random.uniform(0.12, 0.22)
+        radio = random.uniform(0.12, 0.52)
         angulo = random.uniform(-0.6, 0.6) 
         cube_x, cube_y, cube_z = radio * math.cos(angulo), radio * math.sin(angulo), 0.015
 
@@ -144,18 +145,20 @@ class SO101Env(gym.Env):
             time.sleep(0.05) 
             
         # Devolver observación inicial
-        obs = np.concatenate([self.latest_joints, self.tracker.target_pos]).astype(np.float32)
+        obs = np.concatenate([
+            self.latest_joints[:6],   # 6 valores
+            self.tracker.ee_pos,      # 3 valores (Posición de la mano)
+            cube_pos                  # 3 valores (Posición del objetivo)
+        ]).astype(np.float32)
         return obs, {}
 
     def close(self):
         try:
-            # 1. Quitar el nodo del executor para que deje de procesar callbacks
             if hasattr(self, 'node') and self.node is not None:
                 self.executor.remove_node(self.node)
                 self.node.destroy_node()
                 self.node = None
                 
-            # 2. Apagar el executor y el hilo de forma segura
             self.executor.shutdown()
             if hasattr(self, 'spin_thread') and self.spin_thread.is_alive():
                 self.spin_thread.join(timeout=1.0)

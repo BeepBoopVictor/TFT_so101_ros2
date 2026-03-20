@@ -24,17 +24,22 @@ from so101_rl.envs.so101_env_her import SO101HEREnv
 from so101_rl.utils.metrics_logger import MetricsLogger
 
 
-# Función de recompensa Densa + Sparse
-DISTANCE_THRESHOLD = 0.02
+class CurriculumState:
+    threshold = 0.10
+
 
 def compute_reward(achieved_goal, desired_goal, info=None):
+    """Función de recompensa que usa HER Buffer para re-etiquetar, con Curriculum"""
     d = np.linalg.norm(achieved_goal - desired_goal, axis=-1)
-    sparse = -(d > DISTANCE_THRESHOLD).astype(np.float32)
     
-    d_clipped = np.clip(d, 0.0, 1.0) 
+    # 1. Recompensa dispersa (Sparse) usando el umbral dinámico
+    sparse = -(d > CurriculumState.threshold).astype(np.float32)
+    
+    # 2. Recompensa densa (Dense) con el límite de seguridad (clipping)
+    d_clipped = np.clip(d, 0.0, 1.0)
     dense  = -d_clipped * 0.4
+    
     return sparse + dense
-
 
 class HERCritic(torch.nn.Module):
     """Evalua Q(s,a) dado el estado (observación + meta) y la acción."""
@@ -136,6 +141,31 @@ def main():
     train_envs = DummyVectorEnv([lambda m=metrics: SO101HEREnv(logger=m)])
     test_envs = DummyVectorEnv([lambda: SO101HEREnv()])
 
+    def train_fn(epoch, env_step):
+        """
+        Callback que se ejecuta al inicio de cada época.
+        Reduce el umbral de éxito linealmente de 10cm a 2cm.
+        """
+        start_thresh = 0.10      # 10 cm iniciales
+        end_thresh   = 0.02      # 2 cm finales (precisión para agarrar)
+        curriculum_epochs = 50.0 # En qué época queremos alcanzar la máxima dificultad
+        
+        # Interpolación lineal para ir bajando la dificultad
+        if epoch <= curriculum_epochs:
+            new_thresh = start_thresh - (start_thresh - end_thresh) * (epoch / curriculum_epochs)
+        else:
+            new_thresh = end_thresh # A partir de la época 50, se queda en 2cm
+            
+        # 1. Actualizamos el estado compartido para el HER Buffer
+        CurriculumState.threshold = new_thresh
+        
+        # 2. Inyectamos el nuevo umbral en los entornos virtualizados
+        train_envs.set_env_attr('distance_threshold', new_thresh)
+        test_envs.set_env_attr('distance_threshold', new_thresh)
+        
+        # Un pequeño log para que veas por pantalla cómo se vuelve más difícil
+        print(f"\n[Curriculum] Época {epoch}: El robot debe acercarse a menos de {new_thresh*100:.1f} cm para tener éxito.")
+
     # --- REDES NEURONALES (MLP) ---
     # ActorProb: no es determinista, devuelve una distribución de probabilidad sobre las acciones.
     #   - Inicialización de la red del actor
@@ -226,6 +256,7 @@ def main():
         update_per_step=1.0,
         episode_per_test=3,
         batch_size=256,
+        train_fn=train_fn,
         save_best_fn=save_best_fn,
         logger=logger,
         test_fn=on_epoch_end,

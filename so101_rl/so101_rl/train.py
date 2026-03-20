@@ -64,7 +64,7 @@ def main():
     # Recolectar datos iniciales aleatorios para llenar el buffer antes de entrenar
     print("Recolectando datos iniciales...")
     # train_collector.collect(n_step=1000, random=True)
-    train_collector.collect(n_step=100, random=True)
+    train_collector.collect(n_step=1000, random=True)
 
     # 6. Bucle de Entrenamiento
     print("Iniciando entrenamiento...")
@@ -78,12 +78,12 @@ def main():
     # Prueba básica
     result = offpolicy_trainer(
         policy, train_collector, test_collector,
-        max_epoch=7,             # Solo 1 época
-        step_per_epoch=500,      # Muy pocos pasos por época
-        step_per_collect=10,     # Cada 10 pasos simulados, actualiza la red
-        update_per_step=0.1,
-        episode_per_test=1,      # Solo evalúa 1 episodio al terminar la época
-        batch_size=64,
+        max_epoch=100,            
+        step_per_epoch=2000,     
+        step_per_collect=20,    
+        update_per_step=1.0,
+        episode_per_test=3,    
+        batch_size=256,
         save_best_fn=save_best_fn,
         logger=logger
     )

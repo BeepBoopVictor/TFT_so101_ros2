@@ -24,8 +24,31 @@ from so101_rl.envs.so101_env_her import SO101HEREnv
 from so101_rl.utils.metrics_logger import MetricsLogger
 
 
+
+# Función de recompensa Sparse
+# def compute_reward(achieved_goal, desired_goal, info=None):
+#     """
+#     Función de recompensa dispersa para HER
+    
+#     Recompensa: 0 si el agente está a menos de 5cm del objetivo, -1 en caso contrario.
+#     """
+
+#     # Distancia euclediana entre el objetivo alcanzado y el deseado.
+#     d = np.linalg.norm(achieved_goal - desired_goal, axis=-1)
+    
+#     return -(d > 0.05).astype(np.float32)
+
 # Función de recompensa Densa + Sparse
-DISTANCE_THRESHOLD = 0.02
+# IMPORTANTE: este umbral debe mantenerse sincronizado con self.distance_threshold en SO101HEREnv
+DISTANCE_THRESHOLD = 0.07
+
+# --- CONFIGURACIÓN DE CHECKPOINTING ---
+# Cambia esto a True cuando quieras continuar un entrenamiento anterior
+RESUME_TRAINING = True 
+
+# Ruta exacta donde se guardó tu modelo el día anterior (ajusta la ruta según tu ordenador)
+# Por defecto Tianshou suele guardarlo en algo como 'log/so101_her_sac/policy.pth'
+RESUME_PATH = 'log/sac_her_so101/policy_her.pth'
 
 def compute_reward(achieved_goal, desired_goal, info=None):
     d = np.linalg.norm(achieved_goal - desired_goal, axis=-1)
@@ -159,8 +182,29 @@ def main():
         actor,   torch.optim.Adam(actor.parameters(),   lr=3e-4),
         critic1, torch.optim.Adam(critic1.parameters(), lr=3e-4),
         critic2, torch.optim.Adam(critic2.parameters(), lr=3e-4),
+        tau=0.005, 
+        gamma=0.99, 
+        alpha=0.2, 
         action_space=env.action_space
     )
+
+    # ==========================================
+    # NUEVO: LÓGICA PARA REANUDAR ENTRENAMIENTO
+    # ==========================================
+    if RESUME_TRAINING:
+        if os.path.exists(RESUME_PATH):
+            print(f"\n[INFO] Reanudando entrenamiento. Cargando pesos desde: {RESUME_PATH}")
+            # Cargamos el diccionario de pesos del archivo .pth
+            checkpoint = torch.load(RESUME_PATH, map_location=device)
+            
+            # Tianshou guarda los pesos bajo la clave de la política, se los inyectamos
+            policy.load_state_dict(checkpoint)
+            print("[INFO] Pesos cargados con éxito. El agente continuará donde lo dejó.\n")
+        else:
+            print(f"\n[ADVERTENCIA] No se encontró el archivo en {RESUME_PATH}.")
+            print("El entrenamiento comenzará desde cero (pesos aleatorios).\n")
+    else:
+        print("\n[INFO] Entrenamiento desde cero iniciado.\n")
 
     # --- HER REPLAY BUFFER ---
     # https://tianshou.org/en/latest/_modules/tianshou/data/buffer/her.html 05/03/26
@@ -182,7 +226,11 @@ def main():
     # Collector: se encarga de interactuar con el entorno y almacenar las transiciones en el buffer.
     #   - train_collector: se usa para recolectar experiencias durante el entrenamiento. Se activa el ruido de exploración para fomentar la exploración del espacio de acciones.
     #   - test_collector: evalua la política sin ruido de exploración, para obtener una medida más precisa del rendimiento del agente.
-    train_collector = Collector(policy, train_envs, buffer, exploration_noise=True)
+    # train_collector = Collector(policy, train_envs, buffer, exploration_noise=True)
+    train_collector = Collector(
+        policy, train_envs,
+        buffer, exploration_noise=True
+    )
     test_collector = Collector(policy, test_envs)
 
     # --- LOGGER Y FUNCION DE GUARDADO ---
@@ -222,6 +270,7 @@ def main():
         policy, train_collector, test_collector,
         max_epoch=100,
         step_per_epoch=2000,
+        # step_per_collect=10,
         step_per_collect=20,
         update_per_step=1.0,
         episode_per_test=3,
